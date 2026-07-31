@@ -88,12 +88,17 @@ Construct this payload (one entry per participant):
 }
 ```
 
-Post it:
+Post it using Python (curl mishandles the GAS redirect):
 
 ```bash
-curl -X POST "<GAS_URL>" \
-  -H "Content-Type: application/json" \
-  -d '<payload>'
+python3 - <<'EOF'
+import urllib.request, json
+url = "<GAS_URL>"
+payload = json.dumps({"action": "write_emails", "emails": [...]}).encode()
+req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
+with urllib.request.urlopen(req) as r:
+    print(r.read().decode())
+EOF
 ```
 
 ### 5. Report
