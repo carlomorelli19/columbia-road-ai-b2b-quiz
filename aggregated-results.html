@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Maturity · Live Results</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#002A3A; --forest:#034638; --burgundy:#651D32;
+  --yellow:#FDD17A; --cream:#F9F6EC; --light-blue:#B9D9EB;
+  --taupe:#988873; --warm:#E5E1DC; --grey-d:#E5E5E5; --grey-c:#C0C0C0;
+  --black:#161616; --grey-b:#353535; --white:#FFFFFF;
+  --display:'Playfair Display',Georgia,serif;
+  --body:'Work Sans',sans-serif;
+}
+* { margin:0; padding:0; box-sizing:border-box }
+body { background:var(--navy); color:var(--white); font-family:var(--body); font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased; min-height:100vh }
+
+/* ── Header ── */
+.hdr { display:flex; justify-content:space-between; align-items:center; padding:20px 32px; border-bottom:1px solid rgba(255,255,255,.12) }
+.hdr-left { display:flex; align-items:baseline; gap:16px }
+.hdr-title { font-family:var(--display); font-size:1.5rem; font-weight:400; color:var(--white) }
+.hdr-tag { font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:.08em; color:var(--yellow) }
+.hdr-right { text-align:right }
+.participant-count { font-family:var(--display); font-size:2.25rem; font-weight:400; color:var(--yellow); line-height:1 }
+.participant-label { font-size:12px; color:rgba(255,255,255,.55); margin-top:2px }
+.refresh-status { font-size:11px; color:rgba(255,255,255,.4); margin-top:6px; display:flex; align-items:center; justify-content:flex-end; gap:6px }
+.pulse { width:7px; height:7px; border-radius:50%; background:var(--yellow); opacity:0; transition:opacity .3s }
+.pulse.active { opacity:1 }
+
+/* ── Layout ── */
+.grid { display:grid; grid-template-columns:1fr 1fr; grid-template-rows:auto auto; gap:2px; padding:2px }
+.card { background:rgba(255,255,255,.04); padding:28px 28px 24px }
+.card-wide { grid-column:1 / -1 }
+.card-label { font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:.08em; color:var(--yellow); margin-bottom:4px }
+.card-title { font-family:var(--display); font-size:1.25rem; font-weight:400; margin-bottom:20px }
+
+/* ── Empty state ── */
+.empty { display:flex; flex-direction:column; align-items:center; justify-content:center; height:calc(100vh - 90px); gap:12px; opacity:.45 }
+.empty-icon { font-size:3rem; opacity:.5 }
+.empty-text { font-family:var(--display); font-size:1.5rem }
+.empty-sub { font-size:13px }
+
+/* ── Donut chart ── */
+.donut-wrap { display:flex; gap:32px; align-items:center }
+.donut-svg { flex-shrink:0 }
+.donut-legend { display:flex; flex-direction:column; gap:12px; flex:1 }
+.legend-item { display:flex; align-items:center; gap:10px; font-size:13px; line-height:1.35 }
+.legend-dot { width:12px; height:12px; min-width:12px; border-radius:50% }
+.legend-label { color:rgba(255,255,255,.8) }
+.legend-pct { margin-left:auto; font-weight:600; color:var(--white); font-size:14px }
+
+/* ── Histogram ── */
+.hist-bars { display:flex; align-items:flex-end; gap:6px; height:120px }
+.hist-bar-wrap { display:flex; flex-direction:column; align-items:center; gap:4px; flex:1 }
+.hist-bar { width:100%; background:var(--forest); border-radius:4px 4px 0 0; transition:height .6s cubic-bezier(.4,0,.2,1); min-height:2px; position:relative }
+.hist-bar.highlight { background:var(--yellow) }
+.hist-bar-count { font-size:10px; color:rgba(255,255,255,.55); line-height:1 }
+.hist-labels { display:flex; gap:6px; margin-top:6px }
+.hist-label { flex:1; text-align:center; font-size:10px; color:rgba(255,255,255,.4) }
+
+/* ── Horizontal bar chart (blockers) ── */
+.bar-list { display:flex; flex-direction:column; gap:14px }
+.bar-item { display:flex; flex-direction:column; gap:5px }
+.bar-header { display:flex; justify-content:space-between; align-items:baseline }
+.bar-label-text { font-size:13px; color:rgba(255,255,255,.85) }
+.bar-pct-text { font-size:13px; font-weight:600; color:var(--yellow) }
+.bar-track { height:8px; background:rgba(255,255,255,.1); border-radius:4px; overflow:hidden }
+.bar-fill { height:100%; background:var(--burgundy); border-radius:4px; transition:width .8s cubic-bezier(.4,0,.2,1) }
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-left">
+    <div>
+      <div class="hdr-tag">Columbia Road · Stockholm 2026</div>
+      <div class="hdr-title">AI Maturity in B2B Sales &amp; Marketing</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div class="participant-count" id="count">—</div>
+    <div class="participant-label">participants so far</div>
+    <div class="refresh-status">
+      <span class="pulse" id="pulse"></span>
+      <span id="updated">Connecting…</span>
+    </div>
+  </div>
+</header>
+
+<div id="root"></div>
+
+<script>
+// ── Config ────────────────────────────────────────────────────────────────────
+// Paste the deployed Apps Script URL here after redeploying with the doGet handler
+const DASHBOARD_DATA_URL = 'https://script.google.com/macros/s/AKfycby-Zy07mCjO1Cztm9qpGx61ToDO1JokwzLPhJ3VcN3yS0IZ_wzt0MDoKNzwD_czHlXH/exec';
+const REFRESH_INTERVAL_MS = 45000;
+
+// ── Stage colour map ──────────────────────────────────────────────────────────
+const STAGE_COLORS = {
+  'Stage 1: Pilots & POCs':             '#F7CED7',
+  'Stage 1–2: Building to Production':  '#FDD17A',
+  'Stage 2: Single Agents in Production': '#B9D9EB',
+  'Stage 3: Multi-Agent Systems':       '#034638',
+};
+const STAGE_ORDER = [
+  'Stage 1: Pilots & POCs',
+  'Stage 1–2: Building to Production',
+  'Stage 2: Single Agents in Production',
+  'Stage 3: Multi-Agent Systems',
+];
+
+// ── SVG helpers ───────────────────────────────────────────────────────────────
+function polarToXY(cx, cy, r, angleDeg) {
+  const rad = (angleDeg - 90) * Math.PI / 180;
+  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+}
+
+function arcPath(cx, cy, r, startDeg, endDeg) {
+  const s = polarToXY(cx, cy, r, startDeg);
+  const e = polarToXY(cx, cy, r, endDeg);
+  const large = (endDeg - startDeg) > 180 ? 1 : 0;
+  return `M ${s.x} ${s.y} A ${r} ${r} 0 ${large} 1 ${e.x} ${e.y}`;
+}
+
+// ── Donut chart ───────────────────────────────────────────────────────────────
+function renderDonut(stageDist, total) {
+  const cx = 80, cy = 80, r = 64, inner = 40;
+  let segments = '';
+  let legendItems = '';
+  let current = 0;
+
+  const stages = STAGE_ORDER.filter(s => stageDist[s]);
+  if (stages.length === 0) return '<div style="color:rgba(255,255,255,.35);font-size:13px">No data yet</div>';
+
+  stages.forEach(name => {
+    const count = stageDist[name] || 0;
+    const pct = total > 0 ? count / total : 0;
+    const sweep = pct * 360;
+    const end = current + sweep;
+    const color = STAGE_COLORS[name] || '#555';
+
+    if (pct > 0) {
+      if (pct === 1) {
+        // Full circle — use two arcs to avoid SVG degenerate case
+        segments += `<path d="${arcPath(cx,cy,r,0,180)}" fill="none" stroke="${color}" stroke-width="24"/>`;
+        segments += `<path d="${arcPath(cx,cy,r,180,360)}" fill="none" stroke="${color}" stroke-width="24"/>`;
+      } else {
+        segments += `<path d="${arcPath(cx,cy,r,current,end)}" fill="none" stroke="${color}" stroke-width="24"/>`;
+      }
+    }
+
+    const pctDisplay = Math.round(pct * 100);
+    const shortName = name.replace('Stage ', 'S').replace(': Pilots & POCs', ' · Pilots').replace(': Building to Production', ' · Building').replace(': Single Agents in Production', ' · Agents live').replace(': Multi-Agent Systems', ' · Multi-agent');
+    legendItems += `
+      <div class="legend-item">
+        <div class="legend-dot" style="background:${color}"></div>
+        <div class="legend-label">${shortName}</div>
+        <div class="legend-pct">${pctDisplay}%</div>
+      </div>`;
+
+    current = end;
+  });
+
+  return `
+    <div class="donut-wrap">
+      <svg class="donut-svg" width="160" height="160" viewBox="0 0 160 160">
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="24"/>
+        ${segments}
+      </svg>
+      <div class="donut-legend">${legendItems}</div>
+    </div>`;
+}
+
+// ── Histogram ─────────────────────────────────────────────────────────────────
+function renderHistogram(buckets) {
+  const ALL_BUCKETS = ['0','10','20','30','40','50','60','70','80','90','100'];
+  const counts = ALL_BUCKETS.map(b => buckets[b] || 0);
+  const maxCount = Math.max(...counts, 1);
+
+  const bars = counts.map((c, i) => {
+    const heightPct = (c / maxCount) * 100;
+    const isHighlight = i >= 2 && i <= 5; // 20–50 range — typically most populated
+    return `
+      <div class="hist-bar-wrap">
+        <div class="hist-bar-count">${c > 0 ? c : ''}</div>
+        <div class="hist-bar${isHighlight ? ' highlight' : ''}" style="height:${Math.max(heightPct, c > 0 ? 4 : 2)}%"></div>
+      </div>`;
+  }).join('');
+
+  const labels = ['0','10','20','30','40','50','60','70','80','90','100'].map(l =>
+    `<div class="hist-label">${l}</div>`
+  ).join('');
+
+  return `
+    <div class="hist-bars">${bars}</div>
+    <div class="hist-labels">${labels}</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:8px;text-align:center">Score % (0 = lowest, 100 = highest)</div>`;
+}
+
+// ── Blocker bar chart ─────────────────────────────────────────────────────────
+function renderBlockers(blockerCounts, total) {
+  if (!total || Object.keys(blockerCounts).length === 0) {
+    return '<div style="color:rgba(255,255,255,.35);font-size:13px">No data yet</div>';
+  }
+
+  const sorted = Object.entries(blockerCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  const maxCount = sorted[0][1];
+
+  return `<div class="bar-list">` + sorted.map(([label, count]) => {
+    const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+    const barWidth = maxCount > 0 ? Math.round((count / maxCount) * 100) : 0;
+    return `
+      <div class="bar-item">
+        <div class="bar-header">
+          <div class="bar-label-text">${label}</div>
+          <div class="bar-pct-text">${pct}%</div>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${barWidth}%"></div>
+        </div>
+      </div>`;
+  }).join('') + `</div>`;
+}
+
+// ── Main render ───────────────────────────────────────────────────────────────
+function render(data) {
+  const root = document.getElementById('root');
+  const count = document.getElementById('count');
+
+  if (!data || data.total === 0) {
+    count.textContent = '0';
+    root.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">⏳</div>
+        <div class="empty-text">Waiting for first submission…</div>
+        <div class="empty-sub">Results will appear here as people complete the quiz</div>
+      </div>`;
+    return;
+  }
+
+  count.textContent = data.total;
+
+  root.innerHTML = `
+    <div class="grid">
+      <div class="card">
+        <div class="card-label">Stage distribution</div>
+        <div class="card-title">Where the room is</div>
+        ${renderDonut(data.stage_distribution, data.total)}
+      </div>
+
+      <div class="card">
+        <div class="card-label">Score distribution</div>
+        <div class="card-title">How scores are spread</div>
+        ${renderHistogram(data.score_pct_buckets)}
+      </div>
+
+      <div class="card card-wide">
+        <div class="card-label">What's getting in the way</div>
+        <div class="card-title">Top blockers</div>
+        ${renderBlockers(data.top_blockers, data.total)}
+      </div>
+    </div>`;
+}
+
+// ── Fetch and refresh ─────────────────────────────────────────────────────────
+function fmt(d) {
+  return d.getHours().toString().padStart(2,'0') + ':' +
+         d.getMinutes().toString().padStart(2,'0') + ':' +
+         d.getSeconds().toString().padStart(2,'0');
+}
+
+function fetchData() {
+  const pulse = document.getElementById('pulse');
+  const updated = document.getElementById('updated');
+  pulse.classList.add('active');
+
+  fetch(DASHBOARD_DATA_URL)
+    .then(r => r.json())
+    .then(data => {
+      render(data);
+      updated.textContent = 'Updated ' + fmt(new Date());
+    })
+    .catch(err => {
+      updated.textContent = 'Error — retrying';
+      console.error(err);
+    })
+    .finally(() => {
+      setTimeout(() => pulse.classList.remove('active'), 600);
+    });
+}
+
+fetchData();
+setInterval(fetchData, REFRESH_INTERVAL_MS);
+</script>
+</body>
+</html>

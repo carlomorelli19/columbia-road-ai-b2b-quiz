@@ -230,11 +230,11 @@ textarea.tinput{min-height:64px}
   <div class="hero" id="hero">
     <div class="hero-tag">Interactive Assessment</div>
     <h1>AI Maturity in B2B Sales & Marketing</h1>
-    <p>Benchmark your AI readiness in about 5 minutes.</p>
+    <p>Find out where your team actually is on AI in about 5 minutes.</p>
   </div>
 
   <div id="gate" style="background:var(--white);padding:20px 16px 24px;border-bottom:1px solid var(--grey-d)">
-    <p style="font-size:13px;color:var(--taupe);margin-bottom:16px;line-height:1.5">Enter your details to receive a personalised follow-up after the event.</p>
+    <p style="font-size:13px;color:var(--taupe);margin-bottom:16px;line-height:1.5">Enter your details and we'll send your results after the event.</p>
     <div style="margin-bottom:12px">
       <label style="display:block;font-size:12px;font-weight:500;color:var(--taupe);margin-bottom:4px">First name</label>
       <input id="gateName" type="text" class="tinput" placeholder="Anna" autocomplete="given-name" oninput="gateCheck()" style="min-height:44px"/>
@@ -272,7 +272,7 @@ function build(){
   const r=role();
 
   // P0 — Profile
-  S.push({id:'profile',label:'PART 1 OF 4',title:'Your Profile',desc:'Quick context so we can tailor the results.',qs:[
+  S.push({id:'profile',label:'PART 1 OF 4',title:'Your Profile',desc:'A bit of context so your results are relevant.',qs:[
     {id:'P1',tag:'P1',q:'What best describes your role?',m:'single',opts:['Sales leadership','Marketing leadership','Both / Revenue leadership']},
     {id:'P2',tag:'P2',q:'How many people are in your sales and marketing team?',m:'single',opts:['Under 10','10–50','50–200','200+'],fu:{t:'all',l:'What\'s the rough split between sales and marketing?'}},
     {id:'P3',tag:'P3',q:'How do you primarily get new customers?',m:'rating',rl:['Main channel','Secondary','Not used'],ri:['Outbound (cold outreach)','Inbound (content & SEO)','Product-led (free trials, freemium)','Partners & resellers']},
@@ -289,7 +289,7 @@ function build(){
     {id:'M2',tag:'M2',q:'Of those leads, how many turn into real sales conversations?',m:'single',opts:['Under 5%','5–15%','15–30%','Over 30%','We don\'t track this']},
   ];
   let bQ=r==='sales'?sQ:r==='marketing'?mQ:[...sQ,...mQ];
-  S.push({id:'biz',label:'PART 2 OF 4',title:'Business Snapshot',desc:'We\'ll use these numbers to model where AI could have the biggest impact.',qs:bQ});
+  S.push({id:'biz',label:'PART 2 OF 4',title:'Business Snapshot',desc:'We\'ll use these to estimate where AI would move the needle for you.',qs:bQ});
 
   // P2 — Maturity (scored)
   S.push({id:'mat',label:'PART 3 OF 4',title:'AI Maturity',desc:'This section is scored — it\'s a mix of picks and quick scales.',qs:[
@@ -651,23 +651,23 @@ function results(){
 
   for(const c in cats){
     const p=cats[c].mx>0?cats[c].s/cats[c].mx:0;
-    if(c==='Adoption & Tooling')cats[c].a=p<.5?'Standardise approved tools and get shadow AI under control. Most B2B teams are here — the priority is moving from ad-hoc experimentation to a consistent, approved stack.':p<.75?'Good foundation. The next step is integrating tools into your core systems (CRM, email, data) and running your first focused agent pilot.':'Strong adoption. The gains now come from compounding — connecting agents into workflows that run without manual triggers.';
-    else if(c==='Data Readiness')cats[c].a=p<.5?'Data quality is the #1 factor we see holding back AI success in B2B. Before scaling any agent, prioritise cleaning and unifying your customer and sales data — every hour spent here pays back in agent reliability.':p<.75?'Close the gaps between your sales and marketing data systems. Agents are only as good as the context they can access — patchy data means patchy decisions.':'Solid data foundation — you\'re ready for advanced use cases including real-time pipeline insights and predictive signals.';
-    else if(c==='Governance')cats[c].a=p<.5?'Create a lightweight AI policy and assign a clear owner. Without governance, teams default to shadow AI tools — which creates risk and makes it impossible to measure what\'s actually working.':p<.75?'Build a prioritisation framework so AI projects compete on business impact, not enthusiasm. Define KPIs before you build, not after.':'Well-governed. Shift focus to ROI measurement and scaling what\'s proven — your structure supports it.';
-    else cats[c].a=p<.5?'Invest in role-specific enablement and quick wins that make AI feel real for your team. Change management is as critical as the technology — teams that don\'t trust the tools won\'t use them.':p<.75?'Move from general awareness to hands-on practice. The teams pulling ahead are those building muscle memory with AI in their daily workflows, not just in workshops.':'AI-ready culture. Channel this into structured experimentation — your team has the mindset to push into agentic workflows.';
+    if(c==='Adoption & Tooling')cats[c].a=p<.5?'Get shadow AI under control and settle on a shared set of approved tools. Ad-hoc experimentation is fine to start — at this point you need a consistent stack.':p<.75?'Good foundation. Wire the tools you have into your core systems (CRM, email, data) and run a focused pilot before adding more.':'Strong adoption. Wire your tools and agents into automated workflows — the value stops leaking every time someone has to manually trigger something.';
+    else if(c==='Data Readiness')cats[c].a=p<.5?'Bad data breaks AI faster than anything else. Before you scale any agent, clean and unify your customer and sales data. An afternoon on CRM hygiene now will save weeks of bad outputs later.':p<.75?'Close the gaps between your sales and marketing data. Patchy data means patchy output. Agents can only work with what they can actually reach.':'Solid data foundation. Try the more demanding use cases now — agents with full account context, real-time pipeline signals, predictive scoring.';
+    else if(c==='Governance')cats[c].a=p<.5?'Assign a clear AI owner and write a one-page policy. Without it, teams use unsanctioned tools, compliance risk accumulates, and you can\'t tell what\'s working. Ten minutes of governance now saves months of cleanup later.':p<.75?'Prioritise AI projects properly. Good ideas should compete on business impact, not whoever shouted loudest. Set KPIs before you build — not after.':'Well-governed. You\'ve got the structure. Now measure what\'s working and scale it — the decisions are easier than they are for most.';
+    else cats[c].a=p<.5?'Run a quick win. Pick a specific tool, a specific task, and get three or four people using it consistently. Momentum beats ambition right now.':p<.75?'Move from awareness to habit. Workshops don\'t change how people work. Daily practice on real tasks does.':'Your team is ready to go further. Give them structured experiments with clear success criteria — not just permission to explore.';
   }
 
   // Determine which blockers the user selected (O2)
   const blockerSel=A['O2']||[];
   const blockerOpts=['Our data is a mess','We don\'t have the skills','We can\'t prove the ROI','Legal or compliance concerns','Too many options, hard to choose','No leadership buy-in or budget','Our tools don\'t support it'];
   const blockerMsgs={
-    0:'Data being a mess is the most common blocker we see — and the most fixable. Clean, well-structured data isn\'t a prerequisite you wait for; it\'s something you scope and sequence alongside your AI roadmap.',
-    1:'Skill gaps are real but move fast. The bigger risk is waiting for perfect capability before starting — focused pilots with clear success metrics build the expertise.',
+    0:'Messy data is the most common blocker we see — and the most fixable. You don\'t have to solve it all before starting. Tackle it alongside your first use case, not as a prerequisite to everything.',
+    1:'Skill gaps are real. They also close faster than most people expect. Don\'t wait for perfect capability before starting — a focused pilot with a clear success metric builds expertise faster than any training programme.',
     2:'ROI is genuinely hard to prove before you\'ve shipped something. Define your KPIs before you build, not after, and start with use cases where the baseline is already measurable.',
-    3:'Regulatory and compliance concerns are the #1 barrier across European B2B organisations — you\'re in the majority. The good news: clear guardrails make deployment faster, not slower.',
-    4:'Too many options is a strategy problem, not a technology problem. The answer is narrowing to the use cases with the most friction in your current customer journey.',
+    3:'Regulatory and compliance concerns are the #1 barrier across European B2B organisations. You\'re in the majority. Clear guardrails actually speed deployment up — ambiguity is what slows things down.',
+    4:'Too many options is a strategy problem, not a technology problem. Narrow to the use cases with the most friction in your current sales process. One specific problem beats five theoretical ones.',
     5:'Leadership buy-in follows demonstrated results. Start with a use case you can prove in 6–8 weeks and let the numbers do the convincing.',
-    6:'Tool limitations are often a data architecture problem in disguise. Most modern stacks can support AI agents — the question is what context you can feed them.'
+    6:'Tool limitations are usually a data architecture problem in disguise. The constraint isn\'t whether your stack supports agents. It\'s what context you can actually feed them.'
   };
   let blockerHtml='';
   if(blockerSel.length>0){
@@ -679,10 +679,10 @@ function results(){
   }
 
   let lv,stage,bg,fg,desc;
-  if(tot<=10){lv='Stage 1: Pilots & POCs';stage='Where most B2B companies are';bg='var(--pink)';fg='var(--black)';desc='Idea lists, isolated experiments, a few tools live. This is where most B2B companies are in 2026 — the priority is moving from scattered tools to a narrow, well-defined use case running in production.'}
-  else if(tot<=15){lv='Stage 1–2: Building to Production';stage='Approaching the AI leaders';bg='var(--yellow)';fg='var(--black)';desc='Real traction, but still project-based. The gap to close is moving from isolated pilots to a single agent running in production with clear KPIs — that\'s what separates the experimenters from the operators.'}
-  else if(tot<=20){lv='Stage 2: Single Agents in Production';stage='Where the AI leaders are now';bg='var(--light-blue)';fg='var(--black)';desc='Narrow, well-defined use cases running in production. You\'re where the AI leaders are today — the next move is connecting individual agents into multi-step workflows and measuring compounding commercial impact.'}
-  else{lv='Stage 3: Multi-Agent Systems';stage='At the AI frontier';bg='var(--forest)';fg='var(--white)';desc='Ahead of the curve. You\'re building toward the coordinated, agentic commercial engine that most B2B organisations are still planning for. The competitive advantage now comes from proprietary data loops and agent architectures others can\'t replicate quickly.'}
+  if(tot<=10){lv='Stage 1: Pilots & POCs';stage='Where most B2B companies are';bg='var(--pink)';fg='var(--black)';desc='Idea lists, isolated experiments, a few tools live. Most B2B organisations are here in 2026. Pick one use case, narrow the scope, and get it into production.'}
+  else if(tot<=15){lv='Stage 1–2: Building to Production';stage='Approaching the AI leaders';bg='var(--yellow)';fg='var(--black)';desc='Real traction, but still project-based. Pick one pilot and commit to a go-live date. A live agent with real users beats three experiments that never ship.'}
+  else if(tot<=20){lv='Stage 2: Single Agents in Production';stage='Where the AI leaders are now';bg='var(--light-blue)';fg='var(--black)';desc='Focused use cases running in production. That puts you ahead of most. Start connecting your agents — they do more together than they do separately.'}
+  else{lv='Stage 3: Multi-Agent Systems';stage='At the AI frontier';bg='var(--forest)';fg='var(--white)';desc='Ahead of most. You\'re building toward a commercial operation where AI handles the repetitive work end-to-end. Your edge is the data only you have — customer history, deal context, signals from your own market.'}
 
   // ── ROI model ────────────────────────────────────────────────────────────
   // Deal size midpoints (€)
@@ -809,27 +809,27 @@ function results(){
       headline:'Your next move: get one agent fully into production',
       steps:[
         {n:'1',title:'Stop piloting, start shipping',body:'Choose the pilot closest to production-ready and commit to a go-live date. A live agent with real users beats three experiments in a staging environment.'},
-        {n:'2',title:'Connect your tools',body:'Your AI integration score suggests gaps between systems. Agents are only as useful as the context they can reach — CRM, email, and intent data should flow freely.'},
-        {n:'3',title:'Define your KPIs now',body:'Before you scale, establish the baseline metrics. Close rate, response time, pipeline velocity — pick two and instrument them before the agent goes live.'},
-        {n:'4',title:'Build your agent ops muscle',body:'Running agents in production is different from running pilots. Plan for monitoring, edge cases, and a feedback loop from the sales team.'},
+        {n:'2',title:'Connect your tools',body:'Your AI integration score suggests gaps between systems. Agents are only as useful as the context they can reach. Wire up your CRM, email, and intent data so they flow freely between tools.'},
+        {n:'3',title:'Define your KPIs now',body:'Before you scale, establish the baseline metrics. Close rate and pipeline velocity are the ones that matter most — instrument them before the agent goes live, not after.'},
+        {n:'4',title:'Learn to run agents in production',body:'Running agents in production is nothing like running pilots. Set up monitoring, build in a feedback loop with the sales team, and expect unexpected behaviour.'},
       ]
     },
     2:{ // Stage 2
       headline:'Your next move: connect your agents into workflows',
       steps:[
-        {n:'1',title:'Map the handoffs',body:'Where do your current agents hand off to humans or to other systems? Those seams are where value leaks. Design for seamless orchestration.'},
-        {n:'2',title:'Start building proprietary data loops',body:'The competitive advantage in Stage 3 isn\'t the model — it\'s the data the model learns from. Start capturing agent outputs and outcomes as training signal.'},
-        {n:'3',title:'Measure compounding impact',body:'Individual agent ROI is table stakes. Build a dashboard that shows how connected agents affect pipeline velocity, not just individual task completion.'},
-        {n:'4',title:'Plan your agentic workforce',body:'Multi-agent systems need an orchestration layer. Start designing the supervisor-specialist architecture that will run your commercial operations at scale.'},
+        {n:'1',title:'Map the handoffs',body:'Find where your agents hand off to humans or to other systems. Those are the seams where value leaks. Fix the handoffs before you add more agents.'},
+        {n:'2',title:'Build data only you have',body:'The edge in the next stage isn\'t the model — it\'s the data the model learns from. Start capturing what agents do and whether it worked. Most companies aren\'t doing this yet.'},
+        {n:'3',title:'Measure how they affect each other',body:'Individual agent ROI is a baseline, not a goal. Build a view of how connected agents affect pipeline velocity. Task completion rate is not the metric that matters.'},
+        {n:'4',title:'Design the orchestration layer',body:'When multiple agents are running, something needs to coordinate them. Start sketching the structure before you need it — retrofitting is harder.'},
       ]
     },
     3:{ // Stage 3
       headline:'Your next move: widen the moat',
       steps:[
-        {n:'1',title:'Invest in proprietary data advantages',body:'At Stage 3, your edge comes from data others don\'t have. Build systems that capture unique commercial signals — customer behaviour, deal context, competitive intel.'},
-        {n:'2',title:'Instrument for compounding',body:'Measure not just what each agent does, but how the system improves over time. Dreaming loops and self-critique patterns should be part of your agent ops.'},
-        {n:'3',title:'Extend to your commercial ecosystem',body:'The next frontier is agents that operate across your partner network, customer base, and supply chain — not just internal processes.'},
-        {n:'4',title:'Share what you\'ve learned',body:'You\'re ahead of most B2B organisations. The September 1 event is a good place to exchange notes with peers and find where even leaders have blind spots.'},
+        {n:'1',title:'Build data others don\'t have',body:'At Stage 3, your edge is data unique to your business — customer behaviour, deal context, competitive signals. Build systems that capture it and make it available to your agents.'},
+        {n:'2',title:'Measure how the system improves',body:'Track not just what each agent does, but whether the whole setup gets better over time. Build in feedback loops so agents can learn from outcomes, not just execute tasks.'},
+        {n:'3',title:'Extend beyond your own teams',body:'Move beyond your own teams. Agents that operate across your partner network and customer base create leverage that internal automation alone can\'t. That\'s a different order of advantage.'},
+        {n:'4',title:'Share what you\'ve learned',body:'You\'re ahead of most B2B organisations. The September 1 event is a good place to compare notes with peers and find where even the leaders have blind spots.'},
       ]
     }
   };
