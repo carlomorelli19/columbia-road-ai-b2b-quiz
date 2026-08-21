@@ -323,13 +323,13 @@ function build(){
       'Programmatic real-time integrations. Your CRM, email sequencer, and intent data talk to each other via APIs or MCP connectors.',
       'A semantic or data cloud layer (e.g. Salesforce Data Cloud, dbt, a CDP) where all commercial data is harmonised and agents query one source of truth.'
     ],scaleNote:'Not sure / don\'t know',fu:{t:[2,3],l:'Which systems are connected?'}},
-    {id:'A4',tag:'A4 · SCALABILITY',q:'How scalable is your AI setup?',m:'tooltip',scored:true,opts:[
-      'No AI tools in regular use',
-      'Each tool has its own AI',
-      'Shared data foundation',
-      'Shared data and shared skills'
+    {id:'A4',tag:'A4 · SCALABILITY',q:'How mature is your AI setup?',m:'tooltip',scored:true,opts:[
+      'No AI tools used regularly, or no alignment...everyone has their own solution',
+      'We use AI features inside each tool but they are not connected to each other',
+      'Shared data foundation for most AI uses',
+      'Shared data plus a shared context and skills layer'
     ],tips:[
-      'Nothing is running often enough yet for scale to be the question.',
+      'Nothing is running often enough yet, or each person is using a different tool with no shared standard.',
       'AI features sit inside individual tools (CRM, email, support). Each has its own settings and its own context, and nothing carries over between them.',
       'Every AI tool reads from the same customer and sales data, so what one tool knows, the others know too.',
       'On top of shared data, your tools draw on the same skills, prompts, and instructions, so an improvement in one place benefits all of them.'
@@ -359,9 +359,9 @@ function build(){
     {id:'C1',tag:'C1 · GOVERNANCE',q:'Who owns AI in your organisation, and how are decisions made?',m:'tooltip',scored:true,opts:[
       'No ownership',
       'Tech / IT owns it',
-      'Business units own it',
-      'Centralised AI team',
-      'Federated model'
+      'Each team runs their own',
+      'One central team owns it all',
+      'Central guardrails, AI leads in each team'
     ],tips:[
       'AI happens informally. Individuals experiment with tools the company hasn\'t sanctioned, no one is accountable for outcomes or spend.',
       'AI is treated as infrastructure. The technical team prioritises and governs it, while business units consume what IT provides.',
@@ -652,77 +652,156 @@ function go(d){
 }
 function scroll(){window.scrollTo({top:0,behavior:'smooth'})}
 
+// ============ Scoring v2 constants ============
+const NA_CREDIT = 0.25;
+
+const DIMS = {
+  'Connected tools': { w:25, c:'var(--navy)',     ids:['A3','A4'] },
+  'Your data':       { w:30, c:'var(--forest)',   ids:['B1','B2'] },
+  'Ownership':       { w:30, c:'var(--burgundy)', ids:['C1','C2'] },
+  'Your team':       { w:15, c:'var(--taupe)',    ids:['D1'] },
+};
+
+const QCFG = {
+  A3:{ n:4, na:4, short:'how your systems connect',             up:'Connect your main systems properly instead of moving information by hand.' },
+  A4:{ n:4, na:4, short:'shared data across tools',             up:'Give your tools one shared set of customer and sales data to read from.' },
+  B1:{ n:4, na:4, short:'the state of your data',               up:'Clear out duplicates and fill in the fields your first use case depends on.' },
+  B2:{ n:4, na:4, short:'where AI gets its background',         up:'Put the background your AI needs in one place, with someone responsible for keeping it right.' },
+  C1:{ n:5, na:-1, short:'who owns AI',                         up:'Put one name against AI, and agree how ideas get picked.' },
+  C2:{ n:4, na:4, short:'how involved sales and marketing are', up:'Get sales and marketing writing their own instructions rather than handing over a wish list.' },
+  D1:{ n:4, na:4, short:'how your team feels about AI',         up:'Get a handful of people using one tool every day on real work.' },
+};
+
+const STAGES = [
+  { lv:'Stage 0: Nothing running yet', sub:'The starting line', bg:'var(--warm)', fg:'var(--black)',
+    desc:'No AI is doing work for you yet. Plenty of companies are in the same position, and it means you get to skip the mistakes everyone else made first. Start with one job your team dislikes, not with a tool.' },
+  { lv:'Stage 1: Testing and pilots', sub:'Where most companies are', bg:'var(--pink)', fg:'var(--black)',
+    desc:'You have tried things. Nothing has made it into daily use yet. The gap between a pilot and something people rely on is mostly a decision: pick one, set a date, ship it.' },
+  { lv:'Stage 2: First agents live', sub:'Ahead of most', bg:'var(--light-blue)', fg:'var(--black)',
+    desc:'Something is running and people use it. That already puts you ahead of most B2B companies. Next comes joining up what you have, because two agents that share what they know beat four that do not.' },
+  { lv:'Stage 3: Several agents live', sub:'At the front', bg:'var(--forest)', fg:'var(--white)',
+    desc:'You have more than one thing running across sales and marketing. Very few companies are here. From now on your advantage comes from your own data rather than your tools, because everyone can buy the same tools.' },
+];
+
+const READY = [
+  { max:22,  lv:'Not there yet',  desc:'The basics are missing in more than one place. Anything you build now will need rebuilding.' },
+  { max:32,  lv:'Early days',     desc:'Some pieces are in place, most are not. Enough to run one thing carefully, not enough to run several.' },
+  { max:41,  lv:'Getting there',  desc:'A workable base with real gaps in it. Fix the weakest area below and the rest gets easier.' },
+  { max:50,  lv:'Ready for more', desc:'Your foundations can carry more than one thing at a time. The limit now is what you choose to build.' },
+  { max:100, lv:'Solid ground',   desc:'Data, ownership and people all hold up. Very few companies get here.' },
+];
+
+const FIT = {
+  ahead:   { t:'You could be doing more than you are',
+             d:'Your data, ownership and people are in better shape than what you actually have running. That is an unusual place to be, and an easy one to fix. You do not need to prepare more. Pick something and put it live.' },
+  matched: { t:'Your foundations match what you are running',
+             d:'Nothing is badly out of step. Growing is a question of pace rather than repair. Keep what you have moving and tidy up the weakest area below as you go.' },
+  stretched:{ t:'You are running ahead of your foundations',
+             d:'More is live than your data and ownership can comfortably carry. It works until it does not: the output gets unreliable, nobody can say why, and people stop trusting it. Steady the weakest area below before you add anything else.' },
+};
+
+const BOTTLENECK_COPY = {
+  'Connected tools':'Your data and your people are further along than your plumbing. Information still has to be carried by hand between systems, which caps how much you can run at once. This is usually the cheapest of the four to fix.',
+  'Your data':'Everything else waits on this. AI can only work with what it can read, and right now that is incomplete or spread out. Buying more tools will not move it.',
+  'Ownership':'You have the pieces but nobody is deciding. Without a clear owner, AI stays a set of side projects that never get a deadline or a budget line.',
+  'Your team':'Your setup is ahead of your people. Tools nobody opens produce nothing, and that is a habit problem rather than a technology one.',
+};
+
+const DIM_ADVICE = {
+  'Connected tools':[
+    'Your tools do not talk to each other, so somebody has to move information by hand. Fine for a trial, impossible at any real volume. Pick the two systems that matter most and connect them properly.',
+    'The main connections are there. What is missing is one shared source they all read from, so a fix in one place does not have to be repeated in four.',
+    'Your tools share what they know. That is the setup that lets you add the next one in days rather than months.'],
+  'Your data':[
+    'This is what breaks AI fastest. If records are duplicated, half empty or spread across systems, anything built on top will be confidently wrong. A week of tidying saves months of chasing bad output.',
+    'Your data sits in one place but the detail is uneven. Fill the gaps your first use case actually depends on rather than trying to clean all of it.',
+    'Your data is in good shape. That opens up the harder jobs: full account context, live pipeline signals, scoring people will actually trust.'],
+  'Ownership':[
+    'Nobody owns this yet. Without a name against it, people quietly use whatever tools they like, spend adds up that nobody tracks, and no one can say what worked. One person and one page of rules is enough to start.',
+    'There is ownership but no way to choose between ideas. Agree what you are measuring before you build, so projects compete on results rather than on who asks loudest.',
+    'Ownership is clear and decisions have a home. Now show the numbers. Proving one case makes the next five easier to fund.'],
+  'Your team':[
+    'Interest is low, and no tool survives that. Get four or five people using one thing on a real task every day. The habit matters more than which tool you picked.',
+    'People know about it and use it now and then. Training days rarely change how anyone works. Daily use on real work does.',
+    'Your team wants to go further. Give them a clear problem and a way to tell whether they solved it, rather than open permission to experiment.'],
+};
+
 // ============ Results ============
 function results(){
   document.getElementById('prog').classList.remove('on');
   document.querySelector('.nav').style.display='none';
 
-  const ms=S.find(s=>s.id==='mat');
-  let tot=0,mx=0;
-  const cats={
-    'Adoption & Tooling':{ids:['A1','A2','A3','A4'],s:0,mx:0,c:'var(--navy)',a:''},
-    'Data Readiness':{ids:['B1','B2'],s:0,mx:0,c:'var(--forest)',a:''},
-    'Governance':{ids:['C1','C2'],s:0,mx:0,c:'var(--burgundy)',a:''},
-    'Team Readiness':{ids:['D1'],s:0,mx:0,c:'var(--taupe)',a:''},
-  };
+  const cats={};
+  for(const d in DIMS)cats[d]={s:0,mx:DIMS[d].w,c:DIMS[d].c,a:'',p:0};
 
-  ms.qs.forEach(q=>{
-    const raw=A[q.id];
-    if(q.m==='tooltip'){
-      // N/A only on B1 (scaleNote present), value === opts.length
-      const naIdx=q.scaleNote?q.opts.length:-1;
-      if(raw===undefined||raw===naIdx){tot+=0;mx+=3;for(const c in cats){if(cats[c].ids.includes(q.id)){cats[c].s+=0;cats[c].mx+=3}}}
-      else{
-        // Map option index to 0–3 score range
-        const maxOpt=q.opts.length-1;
-        const v=Math.round((raw/maxOpt)*3);
-        tot+=v;mx+=3;for(const c in cats){if(cats[c].ids.includes(q.id)){cats[c].s+=v;cats[c].mx+=3}}
+  const moves=[];
+
+  for(const d in DIMS){
+    const ids=DIMS[d].ids,per=DIMS[d].w/ids.length;
+    ids.forEach(id=>{
+      const cfg=QCFG[id],raw=A[id];
+      const isNA=(raw===undefined||raw===cfg.na);
+      cats[d].s+=per*(isNA?NA_CREDIT:raw/(cfg.n-1));
+
+      if(isNA){
+        moves.push({id,dim:d,gain:per*(0.5-NA_CREDIT),unknown:true,
+                   text:'Nobody is sure about '+cfg.short+'. Worth finding out before you plan around it.'});
+      } else if(raw<cfg.n-1){
+        moves.push({id,dim:d,gain:per*(1/(cfg.n-1)),unknown:false,text:cfg.up});
       }
-    } else {
-      // Use actual option count as max so A2's 5-option scale scores correctly
-      const optMax=q.sl?q.sl.length:(q.opts?q.opts.length:4);
-      const naIdx=q.sl?q.sl.length:-1;
-      const v=(raw!==undefined&&raw!==naIdx)?raw+1:0;
-      tot+=v;mx+=optMax;
-      for(const c in cats){if(cats[c].ids.includes(q.id)){cats[c].s+=v;cats[c].mx+=optMax}}
-    }
-  });
-
-  for(const c in cats){
-    const p=cats[c].mx>0?cats[c].s/cats[c].mx:0;
-    if(c==='Adoption & Tooling')cats[c].a=p<.5?'Get shadow AI under control and settle on a shared set of approved tools. Ad-hoc experimentation is fine at the start, but at this point you need a consistent stack.':p<.75?'Good foundation. Wire the tools you have into your core systems (CRM, email, data) and run a focused pilot before adding more.':'Strong adoption. Wire your tools and agents into automated workflows so value stops leaking every time someone has to trigger something by hand.';
-    else if(c==='Data Readiness')cats[c].a=p<.5?'Bad data and a missing context layer break AI faster than anything else. Before you scale any agent, clean and unify your customer and sales data, and put a shared, curated source of context in place. An afternoon of CRM hygiene will spare you weeks of bad output.':p<.75?'Close the gaps between your sales and marketing data, and get your context layer onto a regular curation and versioning cadence. Patchy data and stale context mean patchy output, because agents can only work with what they can reach.':'Solid data and context foundation. Try the more demanding use cases now: agents with full account context, real-time pipeline signals, predictive scoring.';
-    else if(c==='Governance')cats[c].a=p<.5?'Assign a clear AI owner and write a one-page policy. Without it, teams use unsanctioned tools, compliance risk accumulates, and you can\'t tell what\'s working. Ten minutes of governance now saves months of cleanup later.':p<.75?'Prioritise AI projects properly. Good ideas should compete on business impact rather than on who argues hardest for them. Set the KPIs before you build.':'Well-governed. You\'ve got the structure. Now measure what\'s working and scale it. With that in place, the decisions come easier for you than for most.';
-    else cats[c].a=p<.5?'Run a quick win. Pick a specific tool, a specific task, and get three or four people using it consistently. Build the habit before you set bigger goals.':p<.75?'Move from awareness to habit. Workshops rarely change how people work; daily practice on real tasks does.':'Your team is ready to go further. Give them structured experiments with clear success criteria rather than open-ended permission to explore.';
+    });
   }
+
+  let exact=0;
+  for(const d in cats)exact+=cats[d].s;
+  const tot=Math.round(exact);
+  const mx=100;
+  for(const d in cats){cats[d].p=cats[d].s/cats[d].mx;cats[d].s=Math.round(cats[d].s);}
+  for(const d in cats)cats[d].a=DIM_ADVICE[d][cats[d].p<.5?0:cats[d].p<.75?1:2];
 
   // Determine which blockers the user selected (O2)
   const blockerSel=A['O2']||[];
   const blockerOpts=['Our data is a mess','We don\'t have the skills','We can\'t prove the ROI','Legal or compliance concerns','Too many options, hard to choose','No leadership buy-in or budget','Our tools don\'t support it'];
   const blockerMsgs={
-    0:'Messy data is the most common blocker we see, and also the most fixable. You don\'t have to solve it all before starting. Tackle it alongside your first use case instead of treating it as a prerequisite.',
-    1:'Skill gaps are real. They also close faster than most people expect. Don\'t wait for perfect capability. A focused pilot with a clear success metric builds expertise faster than any training programme.',
-    2:'ROI is hard to prove before you\'ve shipped something. Define your KPIs before you build, and start with use cases where the baseline is already measurable.',
-    3:'Regulatory and compliance concerns are the most common barrier across European B2B organisations, so you\'re in the majority. Clear guardrails speed deployment up; ambiguity is what slows it down.',
-    4:'Too many options is a strategy problem more than a technology problem. Narrow to the use cases with the most friction in your current sales process, and pick one to solve first.',
-    5:'Leadership buy-in follows demonstrated results. Start with a use case you can prove in 6–8 weeks and let the numbers make the case.',
-    6:'Tool limitations are usually a data architecture problem. The constraint is rarely whether your stack supports agents; it is what context you can feed them.'
+    0:'Messy data is the most common blocker we see and the most fixable. You do not have to sort all of it first. Clean the part your first use case touches and leave the rest.',
+    1:'Skill gaps close faster than most people expect. Do not wait until you feel ready. One project with a clear goal teaches more than any training course.',
+    2:'It is hard to prove a return before you have shipped anything. Pick something where you already measure the before, and agree the number you are chasing up front.',
+    3:'Compliance worries are the most common brake across European B2B, so you are in good company. Clear rules speed things up. It is the not-knowing that stalls projects.',
+    4:'Too many options is usually a strategy problem rather than a technology one. Look at where your sales process hurts most and start there.',
+    5:'Buy-in follows results, not slides. Find something you can prove in six to eight weeks and let the number do the arguing.',
+    6:'Tool limits are usually data limits in disguise. The question is rarely whether your stack can run agents. It is what you can give them to work with.',
   };
-  let blockerHtml='';
-  if(blockerSel.length>0){
-    blockerHtml=`<div class="bd" style="border-left:3px solid var(--burgundy)"><div class="bd-t">Your blockers</div>`;
-    blockerSel.forEach(i=>{
-      blockerHtml+=`<div style="margin-bottom:12px"><div style="font-size:13px;font-weight:600;color:var(--black);margin-bottom:2px">${blockerOpts[i]}</div><div style="font-size:13px;color:var(--black);line-height:1.5">${blockerMsgs[i]}</div></div>`;
-    });
-    blockerHtml+=`</div>`;
-  }
+  // Stage: what you actually have running
+  const a1=A['A1'],a2=A['A2'];
+  const stageKey=a2>=4?3:a2===3?2:a2===2?1:(a2===1&&a1>0)?1:0;
+  const {lv,sub:stage,bg,fg,desc}=STAGES[stageKey];
 
-  let lv,stage,bg,fg,desc;
-  const scorePct=mx>0?tot/mx:0;
-  if(scorePct<=.44){lv='Stage 1: Pilots & POCs';stage='Where most B2B companies are';bg='var(--pink)';fg='var(--black)';desc='Idea lists, isolated experiments, a few tools live. Most B2B organisations are here in 2026. Pick one use case, narrow the scope, and get it into production.'}
-  else if(scorePct<=.68){lv='Stage 1–2: Building to Production';stage='Approaching the AI leaders';bg='var(--yellow)';fg='var(--black)';desc='Real traction, but still project-based. Pick one pilot and commit to a go-live date. One live agent with real users is worth more than three experiments that never ship.'}
-  else if(scorePct<=.92){lv='Stage 2: Single Agents in Production';stage='Where the AI leaders are now';bg='var(--light-blue)';fg='var(--black)';desc='Focused use cases running in production. That puts you ahead of most. Start connecting your agents, because they do more together than separately.'}
-  else{lv='Stage 3: Multi-Agent Systems';stage='At the AI frontier';bg='var(--forest)';fg='var(--white)';desc='Ahead of most. You\'re building toward a commercial operation where AI handles the repetitive work end-to-end. Your edge is the data only you have: customer history, deal context, signals from your own market.'}
+  // Readiness band
+  const readyKey=READY.findIndex(b=>tot<=b.max);
+  const ready=READY[readyKey];
+  const scorePct=tot/100;
+
+  // How the two axes sit together
+  const fitKey=readyKey>stageKey+1?'ahead':readyKey<stageKey?'stretched':'matched';
+  const fit=FIT[fitKey];
+
+  // Weakest of the four. Ties break toward the heavier dimension.
+  const ranked=Object.keys(cats).sort((a,b)=>cats[a].p-cats[b].p||DIMS[b].w-DIMS[a].w);
+  const bnDim=ranked[0],stDim=ranked[ranked.length-1];
+  const bnPct=Math.round(cats[bnDim].p*100),stPct=Math.round(cats[stDim].p*100);
+  const spread=Math.round((cats[stDim].p-cats[bnDim].p)*100);
+  const balanced=spread<15;
+
+  // What it would take to reach the next readiness band
+  const nextCut=readyKey<READY.length-1?READY[readyKey].max+1:null;
+  const need=nextCut?nextCut-tot:0;
+  moves.sort((a,b)=>b.gain-a.gain);
+  const plan=[];let acc=0;
+  for(const m of moves){
+    if(acc>=need||plan.length>=3)break;
+    plan.push(m);acc+=m.gain;
+  }
+  const crosses=nextCut!==null&&acc>=need;
 
   // ── ROI model ────────────────────────────────────────────────────────────
   // Deal size midpoints (€)
@@ -836,45 +915,32 @@ function results(){
 
   // ── Next step roadmap ────────────────────────────────────────────────────
   const nextSteps={
-    0:{ // Stage 1
-      headline:'Your next move: ship one agent',
-      steps:[
-        {n:'1',title:'Pick one friction point',body:'Start from the task your team said it wastes the most time on. That\'s your first use case. Keep the scope narrow.'},
-        {n:'2',title:'Get your data in order first',body:'Before any agent can help, it needs clean, accessible data. Audit your CRM quality and close the biggest gaps in 4–6 weeks.'},
-        {n:'3',title:'Run a focused 6-week pilot',body:'Deploy a single agent on a well-defined task with a clear success metric. Prove the value before scaling.'},
-        {n:'4',title:'Establish governance early',body:'Assign an AI owner and write a one-page policy. Shadow AI tools create technical debt and compliance risk, so get ahead of it now.'},
-      ]
-    },
-    1:{ // Stage 1-2
-      headline:'Your next move: get one agent fully into production',
-      steps:[
-        {n:'1',title:'Stop piloting, start shipping',body:'Choose the pilot closest to production-ready and commit to a go-live date. One agent with real users will teach you more than three experiments in a staging environment.'},
-        {n:'2',title:'Connect your tools',body:'Your AI integration score suggests gaps between systems. Agents are only as useful as the context they can reach. Wire up your CRM, email, and intent data so they flow freely between tools.'},
-        {n:'3',title:'Define your KPIs now',body:'Before you scale, establish the baseline metrics. Close rate and pipeline velocity matter most, so instrument them before the agent goes live.'},
-        {n:'4',title:'Learn to run agents in production',body:'Running agents in production is nothing like running pilots. Set up monitoring, build in a feedback loop with the sales team, and expect unexpected behaviour.'},
-      ]
-    },
-    2:{ // Stage 2
-      headline:'Your next move: connect your agents into workflows',
-      steps:[
-        {n:'1',title:'Map the handoffs',body:'Find where your agents hand off to humans or to other systems. Those handoffs are where value leaks. Fix them before you add more agents.'},
-        {n:'2',title:'Build data only you have',body:'At the next stage your edge comes from your data rather than the model. Start capturing what agents do and whether it worked. Most companies aren\'t doing this yet.'},
-        {n:'3',title:'Measure how they affect each other',body:'Individual agent ROI is a starting point. Build a view of how connected agents affect pipeline velocity, and treat task completion rate as a diagnostic rather than a headline number.'},
-        {n:'4',title:'Design the orchestration layer',body:'When multiple agents are running, something needs to coordinate them. Start sketching the structure before you need it, because retrofitting is harder.'},
-      ]
-    },
-    3:{ // Stage 3
-      headline:'Your next move: extend your lead',
-      steps:[
-        {n:'1',title:'Build data others don\'t have',body:'At Stage 3, your edge is data unique to your business: customer behaviour, deal context, competitive signals. Build systems that capture it and make it available to your agents.'},
-        {n:'2',title:'Measure how the system improves',body:'Track what each agent does, and whether the whole setup improves over time. Build in feedback loops so agents can learn from outcomes rather than only execute tasks.'},
-        {n:'3',title:'Extend beyond your own teams',body:'Agents that operate across your partner network and customer base create leverage that internal automation cannot reach. It is a bigger opportunity than anything inside your own walls.'},
-        {n:'4',title:'Share what you\'ve learned',body:'You\'re ahead of most B2B organisations. The September 1 event is a good place to compare notes with peers and find the blind spots the leaders share.'},
-      ]
-    }
+    0:{ headline:'Start with one job, not a strategy', steps:[
+      {n:'1',title:'Pick the job people complain about',body:'Ask your team what they would hand over tomorrow if they could. Start there. Do not run a tool comparison first.'},
+      {n:'2',title:'Get five people using one thing',body:'One tool, five people, every day. Five regular users teach you more than fifty licences nobody opens.'},
+      {n:'3',title:'Put a name against it',body:'Not a working group. One person who decides what gets tried, what gets kept and what it costs. Without that, this dies in the first busy quarter.'},
+      {n:'4',title:'Write down how the work is done',body:'How your best rep actually works is the raw material any AI needs. Writing it down is the most useful thing you can do before spending anything.'},
+    ]},
+    1:{ headline:'Pick one pilot and give it a date', steps:[
+      {n:'1',title:'Choose one and drop the rest',body:'Three experiments that never ship are worth less than one thing people use on Monday. Pick whichever is closest to done.'},
+      {n:'2',title:'Agree the number first',body:'Decide what you are trying to move before you build. Afterwards, everyone measures whatever makes the result look best.'},
+      {n:'3',title:'Give it real users, not reviewers',body:'A pilot nobody depends on tells you nothing. Put it in front of people whose week gets worse if it stops working.'},
+      {n:'4',title:'Fix only what blocks go-live',body:'Data and process problems are endless. Sort out the ones standing between you and launch, and leave the rest for later.'},
+    ]},
+    2:{ headline:'Join up what you already have', steps:[
+      {n:'1',title:'Find where the handovers break',body:'Look at every point where your agent passes work to a person or another system. That is where the time you saved goes missing.'},
+      {n:'2',title:'Start keeping what you learn',body:'Record what the agent did and whether it worked. Almost nobody does this, and it is what makes the next one better.'},
+      {n:'3',title:'Build the second one on the first',body:'Do not start from scratch. Reuse the data and instructions the first one runs on, or you will end up maintaining two of everything.'},
+      {n:'4',title:'Show the numbers while they are fresh',body:'You have a working example. Use it now. Budget follows proof faster than it follows plans.'},
+    ]},
+    3:{ headline:'Your advantage is your own data now', steps:[
+      {n:'1',title:'Build the data nobody else has',body:'Anyone can buy the same tools. What they cannot buy is your customer history, your deal context and what your market told you last quarter. Capture it on purpose.'},
+      {n:'2',title:'Close the loop',body:'Track what each agent did and whether the outcome was any good. Without that, they repeat the same mistakes forever.'},
+      {n:'3',title:'Decide what keeps them in order',body:'Once several are running, something has to sequence them and settle conflicts. Sketch it before you need it. Retrofitting is painful.'},
+      {n:'4',title:'Look outside your own walls',body:'Agents that work with your partners and customers reach further than anything you automate internally. That is the bigger prize.'},
+    ]},
   };
 
-  const stageKey=scorePct<=.44?0:scorePct<=.68?1:scorePct<=.92?2:3;
   const ns=nextSteps[stageKey];
 
   // ── Capture result snapshot for n8n webhook ──────────────────────────────
@@ -890,22 +956,29 @@ function results(){
   const _integLbls=['Manual copy-paste','Basic automations','API / MCP connections','Unified data layer',"Not sure / don't know"];
   const _dataLbls=['Siloed & incomplete','Centralised but dirty','Clean & enriched','Unified with behavioural signals',"Not applicable / don't know"];
   const _ctxLbls=['Whatever someone pastes in','Scattered docs and wikis','One shared knowledge base','Maintained, versioned knowledge base',"Not sure / don't know"];
-  const _scaleLbls=['No AI tools in regular use','Each tool has its own AI','Shared data foundation','Shared data and shared skills',"Not sure / don't know"];
+  const _scaleLbls=['No AI tools used regularly, or no alignment — everyone uses their own','We use AI features inside each tool but they are not connected','Shared data foundation for most AI uses','Shared data plus a shared context and skills layer',"Not sure / don't know"];
   const _contribLbls=['IT builds and owns it','Sales gives needs and reviews output','Sales documents processes and builds skills','Sales prompts and configures agents',"Not sure / don't know"];
   const _docLbls=['Yes and up to date','Yes but stale','Yes but not relevant to how sales works day to day','No'];
-  const _govLbls=['No ownership','Tech / IT owns it','Business units own it','Centralised AI team','Federated model'];
+  const _govLbls=['No ownership','Tech / IT owns it','Each team runs their own','One central team owns it all','Central guardrails, AI leads in each team'];
   const _attLbls=['Avoiding it','Curious but cautious','Using it regularly','Pushing for more'];
   const _oppLbls=['Finding and targeting new leads','Qualifying leads faster','Creating content at scale','Following up with prospects','Forecasting revenue','Researching accounts & competitors','Generating proposals & RFPs','Handoffs between marketing and sales','Internal ops & reporting'];
   const _blkLbls=["Our data is a mess","We don't have the skills","We can't prove the ROI","Legal or compliance concerns","Too many options, hard to choose","No leadership buy-in or budget","Our tools don't support it"];
   const _dm=(key,lbs)=>(A[key]||[]).map(i=>lbs[i]).join('; ')||'';
 
   QUIZ_RESULT={
-    score:tot,score_max:mx,score_pct:Math.round(tot/mx*100),
     stage:lv,
-    adoption_score:cats['Adoption & Tooling'].s+'/'+cats['Adoption & Tooling'].mx,
-    data_score:cats['Data Readiness'].s+'/'+cats['Data Readiness'].mx,
-    governance_score:cats['Governance'].s+'/'+cats['Governance'].mx,
-    team_readiness_score:cats['Team Readiness'].s+'/'+cats['Team Readiness'].mx,
+    stage_index:stageKey,
+    readiness_score:tot,
+    readiness_band:ready.lv,
+    fit:fitKey,
+    connected_tools_pct:Math.round(cats['Connected tools'].p*100),
+    data_pct:Math.round(cats['Your data'].p*100),
+    ownership_pct:Math.round(cats['Ownership'].p*100),
+    team_pct:Math.round(cats['Your team'].p*100),
+    weakest_area:balanced?'none':bnDim,
+    strongest_area:stDim,
+    points_to_next_band:need,
+    next_moves:plan.map(m=>m.id+': '+m.text).join(' | '),
     roi_estimate_eur:hasRoi?totalUplift:null,
     role:A['P1']!==undefined?_roleLbls[A['P1']]:'',
     team_size:A['P2']!==undefined?_teamLbls[A['P2']]:'',
@@ -954,12 +1027,12 @@ function results(){
           stroke-dasharray="${circ}" stroke-dashoffset="${circ}" stroke-linecap="round" id="arc"
           style="transition:stroke-dashoffset 1.2s var(--ease)"/>
       </svg>
-      <div class="ring-txt"><div class="ring-num">${tot}</div><div class="ring-max">out of ${mx}</div></div>
+      <div class="ring-txt"><div class="ring-num">${tot}</div><div class="ring-max">readiness</div></div>
     </div></div>
     <div class="badge" style="background:${bg};color:${fg}">${lv}</div>
     <div style="font-size:12px;opacity:.7;margin-bottom:8px;letter-spacing:.04em;text-transform:uppercase;font-weight:500">${stage}</div>
     <p class="res-desc">${desc}</p>
-    <button onclick="togglePanel('breakdown')" style="background:none;border:none;color:var(--yellow);font-family:var(--body);font-size:13px;font-weight:500;cursor:pointer;margin-top:12px;padding:4px 0;text-decoration:underline;text-underline-offset:3px;opacity:.85" id="detailsBtn">See score details ↓</button>
+    <button onclick="togglePanel('breakdown')" style="background:none;border:none;color:var(--yellow);font-family:var(--body);font-size:13px;font-weight:500;cursor:pointer;margin-top:12px;padding:4px 0;text-decoration:underline;text-underline-offset:3px;opacity:.85" id="detailsBtn">See your four areas ↓</button>
   </div>
 
   <a href="${MEET_URL}" target="_blank" class="get-pdf-btn" style="background:var(--navy);text-decoration:none">
@@ -968,6 +1041,48 @@ function results(){
   </a>
 
   <div class="bd-grid">`;
+
+  // Fit panel — how the two axes sit together
+  const fitInner=`<div style="padding:16px">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+      <div style="flex:1;min-width:120px;padding:10px 12px;background:var(--cream)">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--taupe);margin-bottom:3px">Running today</div>
+        <div style="font-size:13px;font-weight:600;color:var(--navy)">${lv.replace(/^Stage \d: /,'')}</div>
+      </div>
+      <div style="flex:1;min-width:120px;padding:10px 12px;background:var(--cream)">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--taupe);margin-bottom:3px">Foundations</div>
+        <div style="font-size:13px;font-weight:600;color:var(--navy)">${ready.lv}</div>
+      </div>
+    </div>
+    <div style="font-family:var(--display);font-size:1.2rem;color:var(--navy);line-height:1.25;margin-bottom:8px">${fit.t}</div>
+    <div style="font-size:13px;color:var(--grey-b);line-height:1.55;margin-bottom:16px">${fit.d}</div>
+    ${balanced
+      ? `<div style="padding:12px 14px;background:var(--cream);border-left:3px solid var(--forest);font-size:13px;color:var(--grey-b);line-height:1.5">Your four areas are within ${spread} points of each other, which is not common. Nothing is holding you back more than anything else, so this is about pace rather than repair.</div>`
+      : `<div style="padding:12px 14px;background:var(--cream);border-left:3px solid var(--burgundy)">
+          <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--burgundy);margin-bottom:4px">Weakest area &middot; ${bnDim} (${bnPct}%)</div>
+          <div style="font-size:13px;color:var(--grey-b);line-height:1.5;margin-bottom:8px">${BOTTLENECK_COPY[bnDim]}</div>
+          <div style="font-size:13px;color:var(--grey-b);line-height:1.5"><span style="font-weight:600;color:var(--navy)">Strongest is ${stDim} at ${stPct}%.</span> You are held back by the weakest of the four rather than the average, so work spent there pays back more than work spent here.</div>
+        </div>`}
+  </div>`;
+  h+=panel('fit','Where you stand',fitInner,true);
+
+  // Gap panel — what it takes to move to the next readiness band
+  if(nextCut){
+    const gapInner=`<div style="padding:16px">
+      <div style="font-size:13px;color:var(--grey-b);line-height:1.55;margin-bottom:14px">
+        You are <span style="font-weight:600;color:var(--navy)">${need} point${need===1?'':'s'}</span> off
+        <span style="font-weight:600;color:var(--navy)">${READY[readyKey+1].lv}</span>.
+        ${crosses?(plan.length===1?'This one change gets you there:':'These changes get you there:'):'The biggest things you can move right now:'}
+      </div>`+
+      plan.map(m=>`<div style="display:flex;gap:12px;margin-bottom:12px">
+        <div style="min-width:26px;height:26px;border-radius:9999px;background:${m.unknown?'var(--taupe)':'var(--forest)'};color:var(--white);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">${m.id}</div>
+        <div>
+          <div style="font-size:13px;color:var(--black);line-height:1.5">${m.text}</div>
+          <div style="font-size:11px;color:var(--taupe);margin-top:2px">${m.dim} &middot; +${m.gain.toFixed(1)}</div>
+        </div>
+      </div>`).join('')+`</div>`;
+    h+=panel('gap','What moves you up',gapInner,true);
+  }
 
   // ROI panel
   if(hasRoi){
@@ -1043,7 +1158,7 @@ function results(){
   },80)});
 
   // Auto-fire webhook — email was collected at the gate
-  fetch(N8N_WEBHOOK_URL,{
+  fetch(APPS_SCRIPT_URL,{
     method:'POST',
     mode:'no-cors',   // required for Google Apps Script — response not needed
     body:JSON.stringify({submitted_at:new Date().toISOString(),name:GATE_NAME,email:GATE_EMAIL,...QUIZ_RESULT})
@@ -1061,7 +1176,7 @@ function togglePanel(id){
   // Update hero link label and scroll for the breakdown panel
   if(id==='breakdown'){
     const btn=document.getElementById('detailsBtn');
-    if(btn)btn.textContent=closing?'See score details ↓':'Hide score details ↑';
+    if(btn)btn.textContent=closing?'See your four areas ↓':'Hide your four areas ↑';
     if(!closing){
       // Scroll to the panel after it opens
       setTimeout(()=>{
@@ -1073,7 +1188,7 @@ function togglePanel(id){
 }
 
 // ── CONFIGURATION ──────────────────────────────────────────────────────────
-const N8N_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycby-Zy07mCjO1Cztm9qpGx61ToDO1JokwzLPhJ3VcN3yS0IZ_wzt0MDoKNzwD_czHlXH/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-Zy07mCjO1Cztm9qpGx61ToDO1JokwzLPhJ3VcN3yS0IZ_wzt0MDoKNzwD_czHlXH/exec';
 // Paste your Google Calendar / Cal.com booking link here
 const MEET_URL = 'https://calendar.app.google/R3Ku9uvWNCaagR15A';
 // ───────────────────────────────────────────────────────────────────────────
