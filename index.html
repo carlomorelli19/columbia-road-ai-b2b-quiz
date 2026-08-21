@@ -230,7 +230,7 @@ textarea.tinput{min-height:64px}
   <div class="hero" id="hero">
     <div class="hero-tag">Interactive Assessment</div>
     <h1>AI Maturity in B2B Sales & Marketing</h1>
-    <p>Find out where your team actually is on AI in about 5 minutes.</p>
+    <p>See where your team stands on AI in about 5 minutes.</p>
   </div>
 
   <div id="gate" style="background:var(--white);padding:20px 16px 24px;border-bottom:1px solid var(--grey-d)">
@@ -275,14 +275,14 @@ function build(){
   S.push({id:'profile',label:'PART 1 OF 4',title:'Your Profile',desc:'A bit of context so your results are relevant.',qs:[
     {id:'P1',tag:'P1',q:'What best describes your role?',m:'single',opts:['Sales leadership','Marketing leadership','Both / Revenue leadership']},
     {id:'P2',tag:'P2',q:'How many people are in your sales and marketing team?',m:'single',opts:['Under 10','10–50','50–200','200+'],fu:{t:'all',l:'What\'s the rough split between sales and marketing?'}},
-    {id:'P3',tag:'P3',q:'How do you primarily get new customers?',m:'rating',rl:['Main channel','Secondary','Not used'],ri:['Outbound (cold outreach)','Inbound (content & SEO)','Product-led (free trials, freemium)','Partners & resellers']},
+    {id:'P3',tag:'P3',q:'How do you primarily get new customers?',m:'rating',rl:['Main channel','Secondary','Not used'],ri:['Outbound (cold outreach)','Inbound (content & SEO)','Network & referrals','Events & community','Product-led (free trials, freemium)','Partners & resellers']},
   ]});
 
   // P1 — Business
   const sQ=[
     {id:'S1',tag:'S1',q:'What\'s your typical deal size?',m:'single',opts:['Under €10K','€10K–€50K','€50K–€200K','€200K–€1M','€1M+']},
-    {id:'S2',tag:'S2',q:'What share of deals do you actually close?',m:'single',opts:['Under 10%','10–20%','20–35%','35–50%','Over 50%','We don\'t track this']},
-    {id:'S3',tag:'S3',q:'How much of a typical rep\'s week goes on admin, CRM updates, and internal meetings — rather than selling?',m:'single',opts:['Under 20%','20–40%','40–60%','Over 60%']},
+    {id:'S2',tag:'S2',q:'What share of deals do you close?',m:'single',opts:['Under 10%','10–20%','20–35%','35–50%','Over 50%','We don\'t track this']},
+    {id:'S3',tag:'S3',q:'How much of a typical rep\'s week goes on admin, CRM updates, and internal meetings rather than selling?',m:'single',opts:['Under 20%','20–40%','40–60%','Over 60%']},
   ];
   const mQ=[
     {id:'M1',tag:'M1',q:'How many new leads does marketing bring in per month?',m:'single',opts:['Under 50','50–200','200–1K','1K–5K','5K+']},
@@ -291,21 +291,21 @@ function build(){
   const gQ=[
     {id:'G1',tag:'G1',q:'Are your sales processes documented today?',m:'single',opts:[
       'Yes and up to date','Yes but stale',
-      'Yes but not relevant to how we actually work in sales','No'
+      'Yes but not relevant to how sales works day to day','No'
     ]},
   ];
   let bQ=[...gQ,...(r==='sales'?sQ:r==='marketing'?mQ:[...sQ,...mQ])];
-  S.push({id:'biz',label:'PART 2 OF 4',title:'Business Snapshot',desc:'We\'ll use these to estimate where AI would move the needle for you.',qs:bQ});
+  S.push({id:'biz',label:'PART 2 OF 4',title:'Business Snapshot',desc:'We\'ll use these to estimate where AI would have the biggest effect for you.',qs:bQ});
 
   // P2 — Maturity (scored)
-  S.push({id:'mat',label:'PART 3 OF 4',title:'AI Maturity',desc:'This section is scored — it\'s a mix of picks and quick scales.',qs:[
+  S.push({id:'mat',label:'PART 3 OF 4',title:'AI Maturity',desc:'This section is scored. It\'s a mix of picks and quick scales.',qs:[
     {id:'A1',tag:'A1 · TOOLS',q:'How is your team using AI tools today?',m:'single',scored:true,opts:[
-      'No shared tools — a few individuals experimenting on their own',
+      'No shared tools, just a few people experimenting on their own',
       'We use AI assistants (e.g. Copilot, ChatGPT) for writing and research',
       'We have access to a platform to build or manage AI workflows and agents',
-      'AI is embedded across our commercial stack — CRM, outreach, reporting'
-    ],fu:{t:[1,2,3],l:'Which tools are people using?'}},
-    {id:'A2',tag:'A2 · AGENTS',q:'Have you deployed any AI agents — software that takes actions automatically on your behalf?',m:'single',scored:true,opts:[
+      'AI is embedded across our commercial stack: CRM, outreach, reporting'
+    ],fu:{t:'all',l:'Comments (optional)'}},
+    {id:'A2',tag:'A2 · AGENTS',q:'Have you deployed any AI agents, meaning software that takes actions automatically on your behalf?',m:'single',scored:true,opts:[
       'No, we haven\'t looked into it',
       'We have identified a list of use cases to explore',
       'We\'ve run a pilot or experiment',
@@ -318,11 +318,22 @@ function build(){
       'API / MCP connections',
       'Unified data layer'
     ],tips:[
-      'Data moves by hand — CSV exports, copy-paste between tabs, spreadsheets as the bridge between tools.',
+      'Data moves by hand: CSV exports, copy-paste between tabs, spreadsheets as the bridge between tools.',
       'Point-to-point triggers via Zapier, Make, or native integrations. Works for simple flows but breaks under complexity.',
-      'Programmatic real-time integrations — your CRM, email sequencer, and intent data talk to each other via APIs or MCP connectors.',
+      'Programmatic real-time integrations. Your CRM, email sequencer, and intent data talk to each other via APIs or MCP connectors.',
       'A semantic or data cloud layer (e.g. Salesforce Data Cloud, dbt, a CDP) where all commercial data is harmonised and agents query one source of truth.'
-    ],fu:{t:[2,3],l:'Which systems are connected?'}},
+    ],scaleNote:'Not sure / don\'t know',fu:{t:[2,3],l:'Which systems are connected?'}},
+    {id:'A4',tag:'A4 · SCALABILITY',q:'How scalable is your AI setup?',m:'tooltip',scored:true,opts:[
+      'No AI tools in regular use',
+      'Each tool has its own AI',
+      'Shared data foundation',
+      'Shared data and shared skills'
+    ],tips:[
+      'Nothing is running often enough yet for scale to be the question.',
+      'AI features sit inside individual tools (CRM, email, support). Each has its own settings and its own context, and nothing carries over between them.',
+      'Every AI tool reads from the same customer and sales data, so what one tool knows, the others know too.',
+      'On top of shared data, your tools draw on the same skills, prompts, and instructions, so an improvement in one place benefits all of them.'
+    ],scaleNote:'Not sure / don\'t know'},
     {id:'B1',tag:'B1 · DATA',q:'How would you describe the state of your customer and sales data?',m:'tooltip',scored:true,opts:[
       'Siloed & incomplete',
       'Centralised but dirty',
@@ -334,18 +345,18 @@ function build(){
       'Accounts and contacts are deduplicated, enriched (company size, industry, intent signals), and activity is reliably captured across channels.',
       'Transactional, firmographic, and behavioural data (web, product, support) are joined at the account level and accessible to agents in real time.'
     ],scaleNote:'Not applicable / don\'t know'},
-    {id:'B2',tag:'B2 · CONTEXT LAYER',q:'How do you currently work with your context layer for AI?',m:'tooltip',scored:true,opts:[
-      'No context layer',
-      'Informal & decentralised',
-      'Centralised but static',
-      'Centralised, curated & versioned'
+    {id:'B2',tag:'B2 · KNOWLEDGE',q:'When your team uses AI, where does it get company and customer knowledge from?',m:'tooltip',scored:true,opts:[
+      'Whatever someone pastes in',
+      'Scattered docs and wikis',
+      'One shared knowledge base',
+      'A maintained, versioned knowledge base'
     ],tips:[
-      'AI tools work from whatever\'s pasted into the prompt each time — there\'s no shared source of truth for company or customer context.',
-      'Some documentation exists — wikis, Notion pages, shared drives — built up per team, with no regular review and no version history.',
-      'One shared knowledge base or repo holds your context, but updates are ad hoc and there\'s no way to track what changed or when.',
-      'A maintained context layer (knowledge base, RAG store, semantic layer) is centrally owned, reviewed on a regular cadence, and versioned like code.'
-    ],scaleNote:'Not applicable / don\'t know',fu:{t:[2,3],l:'What\'s it built on (e.g. Notion, a wiki, a vector store, a data cloud)?'}},
-    {id:'C1',tag:'C1 · GOVERNANCE',q:'Who owns AI in your organisation — and how are decisions made?',m:'tooltip',scored:true,opts:[
+      'Each person types or pastes in the background the AI needs, so the output depends on who is at the keyboard that day.',
+      'The material exists in wikis, Notion pages, and shared drives, built up team by team, with no owner and no review.',
+      'One place holds the material your AI tools draw on, but it is updated when someone remembers and there is no record of what changed.',
+      'That knowledge base has an owner, gets reviewed on a set schedule, and is versioned like code, so you can see what the AI was working from and when it changed.'
+    ],scaleNote:'Not sure / don\'t know',fu:{t:[1,2,3],l:'Where does it live (e.g. Notion, a wiki, SharePoint)?'}},
+    {id:'C1',tag:'C1 · GOVERNANCE',q:'Who owns AI in your organisation, and how are decisions made?',m:'tooltip',scored:true,opts:[
       'No ownership',
       'Tech / IT owns it',
       'Business units own it',
@@ -353,11 +364,22 @@ function build(){
       'Federated model'
     ],tips:[
       'AI happens informally. Individuals experiment with tools the company hasn\'t sanctioned, no one is accountable for outcomes or spend.',
-      'AI is treated as infrastructure. The technical team prioritises and governs it — business units are consumers, not drivers.',
+      'AI is treated as infrastructure. The technical team prioritises and governs it, while business units consume what IT provides.',
       'Individual teams (sales, marketing, RevOps) run their own AI initiatives independently. Fast but fragmented, no shared standards or data.',
-      'A dedicated function — AI CoE, AI team, or similar — sets standards, evaluates tools, and prioritises use cases across the business.',
+      'A dedicated function (AI CoE, AI team, or similar) sets standards, evaluates tools, and prioritises use cases across the business.',
       'A central AI function sets guardrails and standards; embedded AI leads within each business unit drive execution. Business and tech co-own outcomes.'
     ]},
+    {id:'C2',tag:'C2 · CONTRIBUTION',q:'How much do sales and marketing contribute to building AI?',m:'tooltip',scored:true,opts:[
+      'IT builds and owns it',
+      'Sales gives needs and reviews output',
+      'Sales documents processes and builds skills',
+      'Sales prompts and configures agents'
+    ],tips:[
+      'AI work is specified and delivered by IT or an external partner. Commercial teams receive what gets built.',
+      'Sales and marketing describe what they need and judge the results, but someone else does the building.',
+      'Commercial teams write down how the work is really done and turn that into reusable instructions and skills for AI to follow.',
+      'Sales and marketing write their own prompts and configure agents themselves, with IT providing the platform and the guardrails.'
+    ],scaleNote:'Not sure / don\'t know'},
     {id:'D1',tag:'D1 · TEAM',q:'How would you describe your team\'s attitude toward AI?',m:'scale',scored:true,
       sl:['Avoiding it','Curious but cautious','Using it regularly','Pushing for more']},
   ]});
@@ -638,9 +660,9 @@ function results(){
   const ms=S.find(s=>s.id==='mat');
   let tot=0,mx=0;
   const cats={
-    'Adoption & Tooling':{ids:['A1','A2','A3'],s:0,mx:0,c:'var(--navy)',a:''},
+    'Adoption & Tooling':{ids:['A1','A2','A3','A4'],s:0,mx:0,c:'var(--navy)',a:''},
     'Data Readiness':{ids:['B1','B2'],s:0,mx:0,c:'var(--forest)',a:''},
-    'Governance':{ids:['C1'],s:0,mx:0,c:'var(--burgundy)',a:''},
+    'Governance':{ids:['C1','C2'],s:0,mx:0,c:'var(--burgundy)',a:''},
     'Team Readiness':{ids:['D1'],s:0,mx:0,c:'var(--taupe)',a:''},
   };
 
@@ -668,23 +690,23 @@ function results(){
 
   for(const c in cats){
     const p=cats[c].mx>0?cats[c].s/cats[c].mx:0;
-    if(c==='Adoption & Tooling')cats[c].a=p<.5?'Get shadow AI under control and settle on a shared set of approved tools. Ad-hoc experimentation is fine to start — at this point you need a consistent stack.':p<.75?'Good foundation. Wire the tools you have into your core systems (CRM, email, data) and run a focused pilot before adding more.':'Strong adoption. Wire your tools and agents into automated workflows — the value stops leaking every time someone has to manually trigger something.';
-    else if(c==='Data Readiness')cats[c].a=p<.5?'Bad data and an absent context layer break AI faster than anything else. Before you scale any agent, clean and unify your customer and sales data, and put a shared, curated source of context in place. An afternoon on CRM hygiene now will save weeks of bad outputs later.':p<.75?'Close the gaps between your sales and marketing data, and get your context layer onto a regular curation and versioning cadence. Patchy data and stale context mean patchy output — agents can only work with what they can actually reach.':'Solid data and context foundation. Try the more demanding use cases now — agents with full account context, real-time pipeline signals, predictive scoring.';
-    else if(c==='Governance')cats[c].a=p<.5?'Assign a clear AI owner and write a one-page policy. Without it, teams use unsanctioned tools, compliance risk accumulates, and you can\'t tell what\'s working. Ten minutes of governance now saves months of cleanup later.':p<.75?'Prioritise AI projects properly. Good ideas should compete on business impact, not whoever shouted loudest. Set KPIs before you build — not after.':'Well-governed. You\'ve got the structure. Now measure what\'s working and scale it — the decisions are easier than they are for most.';
-    else cats[c].a=p<.5?'Run a quick win. Pick a specific tool, a specific task, and get three or four people using it consistently. Momentum beats ambition right now.':p<.75?'Move from awareness to habit. Workshops don\'t change how people work. Daily practice on real tasks does.':'Your team is ready to go further. Give them structured experiments with clear success criteria — not just permission to explore.';
+    if(c==='Adoption & Tooling')cats[c].a=p<.5?'Get shadow AI under control and settle on a shared set of approved tools. Ad-hoc experimentation is fine at the start, but at this point you need a consistent stack.':p<.75?'Good foundation. Wire the tools you have into your core systems (CRM, email, data) and run a focused pilot before adding more.':'Strong adoption. Wire your tools and agents into automated workflows so value stops leaking every time someone has to trigger something by hand.';
+    else if(c==='Data Readiness')cats[c].a=p<.5?'Bad data and a missing context layer break AI faster than anything else. Before you scale any agent, clean and unify your customer and sales data, and put a shared, curated source of context in place. An afternoon of CRM hygiene will spare you weeks of bad output.':p<.75?'Close the gaps between your sales and marketing data, and get your context layer onto a regular curation and versioning cadence. Patchy data and stale context mean patchy output, because agents can only work with what they can reach.':'Solid data and context foundation. Try the more demanding use cases now: agents with full account context, real-time pipeline signals, predictive scoring.';
+    else if(c==='Governance')cats[c].a=p<.5?'Assign a clear AI owner and write a one-page policy. Without it, teams use unsanctioned tools, compliance risk accumulates, and you can\'t tell what\'s working. Ten minutes of governance now saves months of cleanup later.':p<.75?'Prioritise AI projects properly. Good ideas should compete on business impact rather than on who argues hardest for them. Set the KPIs before you build.':'Well-governed. You\'ve got the structure. Now measure what\'s working and scale it. With that in place, the decisions come easier for you than for most.';
+    else cats[c].a=p<.5?'Run a quick win. Pick a specific tool, a specific task, and get three or four people using it consistently. Build the habit before you set bigger goals.':p<.75?'Move from awareness to habit. Workshops rarely change how people work; daily practice on real tasks does.':'Your team is ready to go further. Give them structured experiments with clear success criteria rather than open-ended permission to explore.';
   }
 
   // Determine which blockers the user selected (O2)
   const blockerSel=A['O2']||[];
   const blockerOpts=['Our data is a mess','We don\'t have the skills','We can\'t prove the ROI','Legal or compliance concerns','Too many options, hard to choose','No leadership buy-in or budget','Our tools don\'t support it'];
   const blockerMsgs={
-    0:'Messy data is the most common blocker we see — and the most fixable. You don\'t have to solve it all before starting. Tackle it alongside your first use case, not as a prerequisite to everything.',
-    1:'Skill gaps are real. They also close faster than most people expect. Don\'t wait for perfect capability before starting — a focused pilot with a clear success metric builds expertise faster than any training programme.',
-    2:'ROI is genuinely hard to prove before you\'ve shipped something. Define your KPIs before you build, not after, and start with use cases where the baseline is already measurable.',
-    3:'Regulatory and compliance concerns are the #1 barrier across European B2B organisations. You\'re in the majority. Clear guardrails actually speed deployment up — ambiguity is what slows things down.',
-    4:'Too many options is a strategy problem, not a technology problem. Narrow to the use cases with the most friction in your current sales process. One specific problem beats five theoretical ones.',
-    5:'Leadership buy-in follows demonstrated results. Start with a use case you can prove in 6–8 weeks and let the numbers do the convincing.',
-    6:'Tool limitations are usually a data architecture problem in disguise. The constraint isn\'t whether your stack supports agents. It\'s what context you can actually feed them.'
+    0:'Messy data is the most common blocker we see, and also the most fixable. You don\'t have to solve it all before starting. Tackle it alongside your first use case instead of treating it as a prerequisite.',
+    1:'Skill gaps are real. They also close faster than most people expect. Don\'t wait for perfect capability. A focused pilot with a clear success metric builds expertise faster than any training programme.',
+    2:'ROI is hard to prove before you\'ve shipped something. Define your KPIs before you build, and start with use cases where the baseline is already measurable.',
+    3:'Regulatory and compliance concerns are the most common barrier across European B2B organisations, so you\'re in the majority. Clear guardrails speed deployment up; ambiguity is what slows it down.',
+    4:'Too many options is a strategy problem more than a technology problem. Narrow to the use cases with the most friction in your current sales process, and pick one to solve first.',
+    5:'Leadership buy-in follows demonstrated results. Start with a use case you can prove in 6–8 weeks and let the numbers make the case.',
+    6:'Tool limitations are usually a data architecture problem. The constraint is rarely whether your stack supports agents; it is what context you can feed them.'
   };
   let blockerHtml='';
   if(blockerSel.length>0){
@@ -696,10 +718,11 @@ function results(){
   }
 
   let lv,stage,bg,fg,desc;
-  if(tot<=11){lv='Stage 1: Pilots & POCs';stage='Where most B2B companies are';bg='var(--pink)';fg='var(--black)';desc='Idea lists, isolated experiments, a few tools live. Most B2B organisations are here in 2026. Pick one use case, narrow the scope, and get it into production.'}
-  else if(tot<=17){lv='Stage 1–2: Building to Production';stage='Approaching the AI leaders';bg='var(--yellow)';fg='var(--black)';desc='Real traction, but still project-based. Pick one pilot and commit to a go-live date. A live agent with real users beats three experiments that never ship.'}
-  else if(tot<=23){lv='Stage 2: Single Agents in Production';stage='Where the AI leaders are now';bg='var(--light-blue)';fg='var(--black)';desc='Focused use cases running in production. That puts you ahead of most. Start connecting your agents — they do more together than they do separately.'}
-  else{lv='Stage 3: Multi-Agent Systems';stage='At the AI frontier';bg='var(--forest)';fg='var(--white)';desc='Ahead of most. You\'re building toward a commercial operation where AI handles the repetitive work end-to-end. Your edge is the data only you have — customer history, deal context, signals from your own market.'}
+  const scorePct=mx>0?tot/mx:0;
+  if(scorePct<=.44){lv='Stage 1: Pilots & POCs';stage='Where most B2B companies are';bg='var(--pink)';fg='var(--black)';desc='Idea lists, isolated experiments, a few tools live. Most B2B organisations are here in 2026. Pick one use case, narrow the scope, and get it into production.'}
+  else if(scorePct<=.68){lv='Stage 1–2: Building to Production';stage='Approaching the AI leaders';bg='var(--yellow)';fg='var(--black)';desc='Real traction, but still project-based. Pick one pilot and commit to a go-live date. One live agent with real users is worth more than three experiments that never ship.'}
+  else if(scorePct<=.92){lv='Stage 2: Single Agents in Production';stage='Where the AI leaders are now';bg='var(--light-blue)';fg='var(--black)';desc='Focused use cases running in production. That puts you ahead of most. Start connecting your agents, because they do more together than separately.'}
+  else{lv='Stage 3: Multi-Agent Systems';stage='At the AI frontier';bg='var(--forest)';fg='var(--white)';desc='Ahead of most. You\'re building toward a commercial operation where AI handles the repetitive work end-to-end. Your edge is the data only you have: customer history, deal context, signals from your own market.'}
 
   // ── ROI model ────────────────────────────────────────────────────────────
   // Deal size midpoints (€)
@@ -814,44 +837,44 @@ function results(){
   // ── Next step roadmap ────────────────────────────────────────────────────
   const nextSteps={
     0:{ // Stage 1
-      headline:'Your next move: ship one agent, not ten ideas',
+      headline:'Your next move: ship one agent',
       steps:[
-        {n:'1',title:'Pick one friction point',body:'Look at your O3 answer — the task your team wastes most time on. That\'s your first use case. Narrow beats broad every time.'},
+        {n:'1',title:'Pick one friction point',body:'Start from the task your team said it wastes the most time on. That\'s your first use case. Keep the scope narrow.'},
         {n:'2',title:'Get your data in order first',body:'Before any agent can help, it needs clean, accessible data. Audit your CRM quality and close the biggest gaps in 4–6 weeks.'},
         {n:'3',title:'Run a focused 6-week pilot',body:'Deploy a single agent on a well-defined task with a clear success metric. Prove the value before scaling.'},
-        {n:'4',title:'Establish governance early',body:'Assign an AI owner and write a one-page policy. Shadow AI tools create technical debt and compliance risk — get ahead of it now.'},
+        {n:'4',title:'Establish governance early',body:'Assign an AI owner and write a one-page policy. Shadow AI tools create technical debt and compliance risk, so get ahead of it now.'},
       ]
     },
     1:{ // Stage 1-2
       headline:'Your next move: get one agent fully into production',
       steps:[
-        {n:'1',title:'Stop piloting, start shipping',body:'Choose the pilot closest to production-ready and commit to a go-live date. A live agent with real users beats three experiments in a staging environment.'},
+        {n:'1',title:'Stop piloting, start shipping',body:'Choose the pilot closest to production-ready and commit to a go-live date. One agent with real users will teach you more than three experiments in a staging environment.'},
         {n:'2',title:'Connect your tools',body:'Your AI integration score suggests gaps between systems. Agents are only as useful as the context they can reach. Wire up your CRM, email, and intent data so they flow freely between tools.'},
-        {n:'3',title:'Define your KPIs now',body:'Before you scale, establish the baseline metrics. Close rate and pipeline velocity are the ones that matter most — instrument them before the agent goes live, not after.'},
+        {n:'3',title:'Define your KPIs now',body:'Before you scale, establish the baseline metrics. Close rate and pipeline velocity matter most, so instrument them before the agent goes live.'},
         {n:'4',title:'Learn to run agents in production',body:'Running agents in production is nothing like running pilots. Set up monitoring, build in a feedback loop with the sales team, and expect unexpected behaviour.'},
       ]
     },
     2:{ // Stage 2
       headline:'Your next move: connect your agents into workflows',
       steps:[
-        {n:'1',title:'Map the handoffs',body:'Find where your agents hand off to humans or to other systems. Those are the seams where value leaks. Fix the handoffs before you add more agents.'},
-        {n:'2',title:'Build data only you have',body:'The edge in the next stage isn\'t the model — it\'s the data the model learns from. Start capturing what agents do and whether it worked. Most companies aren\'t doing this yet.'},
-        {n:'3',title:'Measure how they affect each other',body:'Individual agent ROI is a baseline, not a goal. Build a view of how connected agents affect pipeline velocity. Task completion rate is not the metric that matters.'},
-        {n:'4',title:'Design the orchestration layer',body:'When multiple agents are running, something needs to coordinate them. Start sketching the structure before you need it — retrofitting is harder.'},
+        {n:'1',title:'Map the handoffs',body:'Find where your agents hand off to humans or to other systems. Those handoffs are where value leaks. Fix them before you add more agents.'},
+        {n:'2',title:'Build data only you have',body:'At the next stage your edge comes from your data rather than the model. Start capturing what agents do and whether it worked. Most companies aren\'t doing this yet.'},
+        {n:'3',title:'Measure how they affect each other',body:'Individual agent ROI is a starting point. Build a view of how connected agents affect pipeline velocity, and treat task completion rate as a diagnostic rather than a headline number.'},
+        {n:'4',title:'Design the orchestration layer',body:'When multiple agents are running, something needs to coordinate them. Start sketching the structure before you need it, because retrofitting is harder.'},
       ]
     },
     3:{ // Stage 3
-      headline:'Your next move: widen the moat',
+      headline:'Your next move: extend your lead',
       steps:[
-        {n:'1',title:'Build data others don\'t have',body:'At Stage 3, your edge is data unique to your business — customer behaviour, deal context, competitive signals. Build systems that capture it and make it available to your agents.'},
-        {n:'2',title:'Measure how the system improves',body:'Track not just what each agent does, but whether the whole setup gets better over time. Build in feedback loops so agents can learn from outcomes, not just execute tasks.'},
-        {n:'3',title:'Extend beyond your own teams',body:'Move beyond your own teams. Agents that operate across your partner network and customer base create leverage that internal automation alone can\'t. That\'s a different order of advantage.'},
-        {n:'4',title:'Share what you\'ve learned',body:'You\'re ahead of most B2B organisations. The September 1 event is a good place to compare notes with peers and find where even the leaders have blind spots.'},
+        {n:'1',title:'Build data others don\'t have',body:'At Stage 3, your edge is data unique to your business: customer behaviour, deal context, competitive signals. Build systems that capture it and make it available to your agents.'},
+        {n:'2',title:'Measure how the system improves',body:'Track what each agent does, and whether the whole setup improves over time. Build in feedback loops so agents can learn from outcomes rather than only execute tasks.'},
+        {n:'3',title:'Extend beyond your own teams',body:'Agents that operate across your partner network and customer base create leverage that internal automation cannot reach. It is a bigger opportunity than anything inside your own walls.'},
+        {n:'4',title:'Share what you\'ve learned',body:'You\'re ahead of most B2B organisations. The September 1 event is a good place to compare notes with peers and find the blind spots the leaders share.'},
       ]
     }
   };
 
-  const stageKey=tot<=11?0:tot<=17?1:tot<=23?2:3;
+  const stageKey=scorePct<=.44?0:scorePct<=.68?1:scorePct<=.92?2:3;
   const ns=nextSteps[stageKey];
 
   // ── Capture result snapshot for n8n webhook ──────────────────────────────
@@ -862,12 +885,14 @@ function results(){
   const _convLbls=['Under 5%','5\u201315%','15\u201330%','Over 30%',"We don't track this"];
   const _roleLbls=['Sales leadership','Marketing leadership','Both / Revenue leadership'];
   const _teamLbls=['Under 10','10\u201350','50\u2013200','200+'];
-  const _toolLbls=['No shared tools \u2014 individuals only','AI assistants (Copilot/ChatGPT)','Workflow / agent platform','AI embedded across commercial stack'];
-  const _agentLbls=["No \u2014 haven't looked into it","We have identified a list of use cases to explore",'Ran a pilot or experiment','One or two running in production','Multiple agents live across sales & marketing'];
-  const _integLbls=['Manual copy-paste','Basic automations','API / MCP connections','Unified data layer'];
-  const _dataLbls=['Siloed & incomplete','Centralised but dirty','Clean & enriched','Unified with behavioural signals'];
-  const _ctxLbls=['No context layer','Informal & decentralised','Centralised but static','Centralised, curated & versioned'];
-  const _docLbls=['Yes and up to date','Yes but stale','Yes but not relevant to how we actually work in sales','No'];
+  const _toolLbls=['No shared tools, individuals only','AI assistants (Copilot/ChatGPT)','Workflow / agent platform','AI embedded across commercial stack'];
+  const _agentLbls=["No, haven't looked into it","We have identified a list of use cases to explore",'Ran a pilot or experiment','One or two running in production','Multiple agents live across sales & marketing'];
+  const _integLbls=['Manual copy-paste','Basic automations','API / MCP connections','Unified data layer',"Not sure / don't know"];
+  const _dataLbls=['Siloed & incomplete','Centralised but dirty','Clean & enriched','Unified with behavioural signals',"Not applicable / don't know"];
+  const _ctxLbls=['Whatever someone pastes in','Scattered docs and wikis','One shared knowledge base','Maintained, versioned knowledge base',"Not sure / don't know"];
+  const _scaleLbls=['No AI tools in regular use','Each tool has its own AI','Shared data foundation','Shared data and shared skills',"Not sure / don't know"];
+  const _contribLbls=['IT builds and owns it','Sales gives needs and reviews output','Sales documents processes and builds skills','Sales prompts and configures agents',"Not sure / don't know"];
+  const _docLbls=['Yes and up to date','Yes but stale','Yes but not relevant to how sales works day to day','No'];
   const _govLbls=['No ownership','Tech / IT owns it','Business units own it','Centralised AI team','Federated model'];
   const _attLbls=['Avoiding it','Curious but cautious','Using it regularly','Pushing for more'];
   const _oppLbls=['Finding and targeting new leads','Qualifying leads faster','Creating content at scale','Following up with prospects','Forecasting revenue','Researching accounts & competitors','Generating proposals & RFPs','Handoffs between marketing and sales','Internal ops & reporting'];
@@ -893,33 +918,17 @@ function results(){
     ai_tools:A['A1']!==undefined?_toolLbls[A['A1']]:'',
     ai_agents:A['A2']!==undefined?_agentLbls[A['A2']]:'',
     ai_integration:A['A3']!==undefined?_integLbls[A['A3']]:'',
+    ai_scalability:A['A4']!==undefined?_scaleLbls[A['A4']]:'',
     data_quality:A['B1']!==undefined?_dataLbls[A['B1']]:'',
-    context_layer:A['B2']!==undefined?_ctxLbls[A['B2']]:'',
+    knowledge_source:A['B2']!==undefined?_ctxLbls[A['B2']]:'',
     governance_owner:A['C1']!==undefined?_govLbls[A['C1']]:'',
+    sales_ai_contribution:A['C2']!==undefined?_contribLbls[A['C2']]:'',
     team_attitude:A['D1']!==undefined?_attLbls[A['D1']]:'',
     top_opportunities:_dm('O1',_oppLbls),
     top_blockers:_dm('O2',_blkLbls),
     biggest_time_waste:A['O3_open']||'',
     roadmap_headline:ns.headline
   };
-
-  let nextHtml=`<div style="background:var(--cream);padding:24px 16px 8px">
-    <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--burgundy);margin-bottom:4px">Your AI Roadmap</div>
-    <div style="font-family:var(--display);font-size:1.375rem;font-weight:400;color:var(--navy);margin-bottom:16px;line-height:1.3">${ns.headline}</div>`;
-
-  ns.steps.forEach(s=>{
-    nextHtml+=`<div style="display:flex;gap:12px;margin-bottom:14px">
-      <div style="min-width:28px;height:28px;border-radius:9999px;background:var(--navy);color:var(--white);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px">${s.n}</div>
-      <div>
-        <div style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:3px">${s.title}</div>
-        <div style="font-size:13px;color:var(--grey-b);line-height:1.5">${s.body}</div>
-      </div>
-    </div>`;
-  });
-
-  nextHtml+=`<div style="background:var(--navy);border-radius:8px;padding:14px;margin-top:8px;margin-bottom:16px">
-    <div style="font-size:13px;color:var(--white);line-height:1.5;opacity:.9">${ns.cta}</div>
-  </div></div>`;
 
   // ── Score ring ───────────────────────────────────────────────────────────
   const pct=tot/mx*100,circ=2*Math.PI*66,off=circ-(pct/100)*circ;

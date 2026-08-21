@@ -6,11 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a single-file, self-contained HTML/JS quiz — an **AI Maturity Assessment** built for Columbia Road's *AI in B2B Sales and Marketing* event (Stockholm, September 1 2026). There is no build system, no package manager, no server.
 
-To run: open `ai-maturity-quiz.html` directly in a browser.
+To run: open `index.html` directly in a browser.
 
 ## Architecture
 
-Everything lives in `ai-maturity-quiz.html`:
+Everything lives in `index.html`:
 
 - **CSS** — inline `<style>` block using CSS custom properties. Mobile-first layout capped at 480px, `--navy`/`--forest`/`--burgundy`/`--yellow`/`--cream` colour palette.
 - **HTML** — a single `<div class="app">` shell. All content is injected by JS into `<div id="box">`.
@@ -51,12 +51,12 @@ Scored questions (Part 3, `scored:true`) drive the maturity calculation in `resu
 
 `results()` computes `tot` and `mx` from Part 3 questions only. Tooltip questions are normalised to a 0–3 range; single/scale questions use their raw option count. Four named categories map subsets of question IDs:
 
-- **Adoption & Tooling** — A1, A2, A3  
-- **Data Readiness** — B1  
-- **Governance** — C1  
+- **Adoption & Tooling** — A1, A2, A3, A4
+- **Data Readiness** — B1, B2
+- **Governance** — C1, C2
 - **Team Readiness** — D1
 
-Stage thresholds: ≤10 → Stage 1, ≤15 → Stage 1–2, ≤20 → Stage 2, >20 → Stage 3.
+Stage thresholds (percentage of max score): ≤44% → Stage 1, ≤68% → Stage 1–2, ≤92% → Stage 2, >92% → Stage 3.
 
 ### ROI model
 
